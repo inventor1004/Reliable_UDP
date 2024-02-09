@@ -60,3 +60,61 @@ uint32_t calculate_crc32(const unsigned char* data, size_t len) {
 
     return ~crc;
 }
+
+
+void breakingFile(const char* fileName) {
+    size_t file_size;
+    uint32_t crc32;
+    unsigned char* buffer;
+
+    FILE* pf_input;
+    pf_input = fopen(fileName, "rb");
+    if (pf_input == NULL) {
+        printf("Error - opening input file.\n");
+        return;
+    }
+
+    fseek(pf_input, 0, SEEK_END);
+    file_size = ftell(pf_input);
+    fseek(pf_input, 0, SEEK_SET);
+
+    buffer = (unsigned char*)malloc(file_size);
+    if (buffer == NULL) {
+        perror("Error - Failed to allocate memory");
+        fclose(pf_input);
+        return;
+    }
+
+    if (fread(buffer, 1, file_size, pf_input) != file_size) {
+        perror("Error - Failed to read file");
+        free(buffer);
+        fclose(pf_input);
+        return;
+    }
+
+    crc32_init();
+    crc32 = calculate_crc32(buffer, file_size);
+
+    char* sendbuf = (char*)malloc(file_size);
+    if (sendbuf == NULL) {
+        printf("Error - Memory allocation failed.\n");
+    }
+    memset(sendbuf, 0, file_size);
+    size_t bytesRead = fread(sendbuf, file_size, 1, pf_input);
+    if (bytesRead < sizeof(buffer)) {
+        if (ferror(pf_input)) {
+            printf("Error reading file.\n");
+            free(sendbuf);
+            fclose(pf_input);
+            return;
+        }
+    }
+    fclose(pf_input);
+
+    unsigned char checkSum = calculateChecksum(sendbuf, sizeof(sendbuf));
+    sendbuf[sizeof(sendbuf)] = checkSum;
+
+    // call send function
+
+    free(sendbuf);
+}
