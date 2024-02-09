@@ -118,3 +118,32 @@ void breakingFile(const char* fileName) {
 
     free(sendbuf);
 }
+
+
+void fileWriteToDisk(const char* fileName, size_t fileSize, const char* dataPiece) {
+    char outputFileName[] = "";
+    strcpy(outputFileName, fileName);
+
+    FILE* pf_output;
+    pf_output = fopen(outputFileName, "wb");
+    if (pf_output == NULL) {
+        printf("Error - opening output file.\n");
+        fclose(pf_output);
+        return;
+    }
+    while (1) {
+        size_t bytesRead = fileSize;
+        if (bytesRead <= 0) {
+            if (feof(pf_output) != 0) {
+                printf("Complete to transfer file.\n");
+                break;
+            }
+            else {
+                printf("Data transfer failed.\n");
+                break;
+            }
+        }
+        fwrite(dataPiece, 1, bytesRead, pf_output);
+    }
+    fclose(pf_output);
+}
