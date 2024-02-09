@@ -13,6 +13,14 @@
 
 using namespace std;
 
+
+/*
+ * Function     : calculateChecksum
+ * Description  : Calculates the checksum of the input data.
+ * Parameters   : char* sendData - Pointer to the input data array.
+ *                int dataSize    - Size of the input data array.
+ * Return       : unsigned char - The calculated checksum.
+ */
 unsigned char calculateChecksum(char* sendData, int dataSize)
 {
     unsigned char sum = 0;
@@ -25,14 +33,11 @@ unsigned char calculateChecksum(char* sendData, int dataSize)
 }
 
 
-// CRC32 Table initialation
-// To use CRC32 step in the main code
-// 1. declare     uint32_t crc32; size_t file_size;
-// 2. crc32_init();
-// 3. crc32 = calculate_crc32(buffer, file_size);
+ /*
+  * Function     : crc32_init
+  * Description  : Initializes the CRC32 table.
+  */
 uint32_t crc32_table[256];
-
-// CRC32 function initialation
 void crc32_init() {
     uint32_t crc;
     int i, j;
@@ -49,7 +54,19 @@ void crc32_init() {
     }
 }
 
-// CRC32 function calculation
+
+/*
+ * Function     : calculate_crc32
+ * Description  : Calculates the CRC32 value for the given data.
+ * Parameters   : const unsigned char* data - Pointer to the input data array.
+ *                size_t len                 - Size of the input data array.
+ * Return       : uint32_t - The calculated CRC32 value.
+ *
+ * To use CRC32 step in the main code
+ * 1. declare     uint32_t crc32; size_t file_size;
+ * 2. crc32_init();
+ * 3. crc32 = calculate_crc32(buffer, file_size);
+ */
 uint32_t calculate_crc32(const unsigned char* data, size_t len) {
     uint32_t crc = 0xFFFFFFFF;
     size_t i;
@@ -62,6 +79,12 @@ uint32_t calculate_crc32(const unsigned char* data, size_t len) {
 }
 
 
+/*
+ * Function     : breakingFile
+ * Description  : Reads a binary file, calculates its CRC32 value, appends the checksum,
+ *                and then prepares the data for transmission.
+ * Parameters   : const char* fileName - Name of the input file.
+ */
 void breakingFile(const char* fileName) {
     size_t file_size;
     uint32_t crc32;
@@ -120,6 +143,13 @@ void breakingFile(const char* fileName) {
 }
 
 
+/*
+ * Function     : fileWriteToDisk
+ * Description  : Writes data to a file on the disk.
+ * Parameters   : const char* fileName  - Name of the output file.
+ *                size_t fileSize       - Size of the data to be written.
+ *                const char* dataPiece - Pointer to the data to be written.
+ */
 void fileWriteToDisk(const char* fileName, size_t fileSize, const char* dataPiece) {
     char outputFileName[] = "";
     strcpy(outputFileName, fileName);
