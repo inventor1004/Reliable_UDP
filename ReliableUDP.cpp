@@ -11,6 +11,7 @@ Author: Glenn Fiedler <gaffer@gaffer.org>
 #include <vector>
 
 #include "Net.h"
+#include "FileHandler.h"
 #pragma warning(disable: 4996)
 
 //#define SHOW_ACKS
@@ -28,6 +29,10 @@ const int PacketSize = 256;
 
 int sendCount = 0;
 int recieveCount = 0;
+
+#define HEADER_SIZE   16
+#define CHECK_SUM_SIZE 2
+#define MAXIMUM_DATA_SIZE (256 - HEADER_SIZE - CHECK_SUM_SIZE)
 
 class FlowControl
 {
@@ -174,7 +179,9 @@ int main(int argc, char* argv[])
 	FlowControl flowControl;
 
 	
-	bool isFileReciving = false;
+	bool isFileRequested  = false;	
+	bool isFileProcessing = false;
+	unsigned char fileName[MAXIMUM_DATA_SIZE];
 	while (true)
 	{
 		// update flow control
@@ -206,17 +213,38 @@ int main(int argc, char* argv[])
 		}
 
 		// send and receive packets
-		if (connected && connection.IsConnected()) // && !IsFileReciving
+		if (connected && connection.IsConnected() && mode == Client && !isFileRequested)
 		{
 			/* [FileName]
-			* 1. Do file extension verification 
-			* 2. Do file file length verification
-			* 3. Calculate check sum
-			* 4. Change the file name to the ASCII code
-			* 5. Make a data set = CheckSum + ASCII code (File Name)
-			* 6. IsFileReciving = true
+			* 1. Get file name with extension from the user
+			* 2. Do file extension verification 
+			* 1. Do file file length verification
+			* 4. Calculate check sum
+			* 5. Change the file name to the ASCII code
+			* 6. Make a data set = CheckSum + ASCII code (File Name)
+			* 7. IsFileReciving = true
 			*/
+			cout << "Enter a file name: ";
+			if (fgets(reinterpret_cast<char*>(fileName), MAXIMUM_DATA_SIZE, stdin) != NULL)
+			{
+				// change the enter(\n) to nullptr(\0)
+				size_t len = strlen(reinterpret_cast<char*>(fileName));
+				if (len > 0 && fileName[len - 1] == '\n') {
+					fileName[len - 1] = '\0';
+				}
 
+				if (IsFileValid(fileName, sizeof(fileName)) == false)
+				{
+					cout << "It is not valid file name..." << endl;
+					cout << "This program supports txt, pdf, docx, jpg, png type of files." << endl;
+					cout << "please check the file name and its extension." << endl;
+					return 0;
+				}
+				else
+				{
+					isFileRequested == true;
+				}
+			}
 			// unsigned char checkSum; 
 			// WriteCheckSum(checkSum, data);
 			// std::memcpy(packet + header, checkSum, sizeof(checkSum));
@@ -229,7 +257,7 @@ int main(int argc, char* argv[])
 		{
 			unsigned char packet[PacketSize];
 			memset(packet, 0, sizeof(packet));
-			if (mode == Client && isFileReciving == false)
+			if (mode == Client && isFileRequested == true && isFileProcessing == false)
 			{
 				// 
 			}

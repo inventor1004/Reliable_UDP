@@ -29,7 +29,6 @@ bool IsFileValid(const unsigned char fileName[], int size)
 
     // Convert fileName to std::string for extension checking
     string fileFullNameStr(reinterpret_cast<const char*>(fileName), size);
-    int i = strlen((char*)fileName);
 
     // Find the position of the last dot ('.')
     size_t lastDotPos = fileFullNameStr.find_last_of('.');
